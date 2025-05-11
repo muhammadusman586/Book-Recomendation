@@ -1,59 +1,117 @@
 import express from "express";
 import User from "../models/User.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
+// Function to generate JWT token
+const generateToken = (userID) => {
+  return jwt.sign({ userID }, process.env.JWT_SECRET, { expiresIn: "5d" });
+};
+
+// Register Route
 router.post("/register", async (req, res) => {
-  const { username, email, password } = req.body;
   try {
+    const { email, username, password } = req.body;
+
+    // Check if all fields are provided
     if (!username || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-      if (username.length < 3) {
-      return res
-        .status(400)
-        .json({ message: "User should  be at least 3 characters long" });
+
+    // Validate password length
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password should be at least 8 characters." });
     }
 
-    if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+    // Validate username length
+    if (username.length < 3) {
+      return res.status(400).json({ message: "Username should be at least 3 characters." });
     }
 
-    const user = await User.findOne({ email });
+    // Check if user already exists (email & username)
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "User with this email already exists." });
+    }
 
-    if (user) return res.status(400).json({ message: "Email already exists" });
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "User with this username already exists." });
+    }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    const profileImage = `https://api.dicebear.com/9.x/avataaars/svg?seed=${username}`;
 
-    const newUser = new User({
-      fullName,
+    // Create new user
+    const user = new User({
       email,
-      password: hashedPassword,
+      username,
+      password,
+      profileImage,
     });
 
-    if (newUser) {
-      generateToken(newUser._id, res);
-      await newUser.save();
+    await user.save();
 
-      res.status(201).json({
-        _id: newUser._id,
-        fullName: newUser.fullName,
-        email: newUser.email,
-        profilePic: newUser.profilePic,
-      });
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
-    }
+    // Generate JWT token
+    const token = generateToken(user._id);
+
+    // Respond with user data & token
+    res.status(201).json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+      },
+    });
+
   } catch (error) {
-    console.log("Error in signup controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error in register route:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
-router.post("/login", (req, res) => {
-  res.send("login");
+
+// Login Route
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Compare password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error in login route:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 export default router;

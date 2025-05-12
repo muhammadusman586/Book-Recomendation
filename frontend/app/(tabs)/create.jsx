@@ -13,12 +13,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import styles from '../../assets/styles/create.styles';
 import { Ionicons } from '@expo/vector-icons';
-import COLORS from '../../constants/Colors';
+import COLORS from '../../constants/colors';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuthStore } from '../../store/authStore'; // Importing the auth store
 
 
 export default function Create() {
@@ -30,6 +29,7 @@ export default function Create() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  Console.log("Router: context:", router);
   const {token} = useAuthStore(); // Added useAuthStore() to retrieve token
   const pickImage = async () => {
     try {

@@ -1,18 +1,22 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 import { Tabs } from 'expo-router'
-import COLORS from '../../constants/Colors'
-import {IonIcons} from '@expo/vector-icons'
+import COLORS from '../../constants/colors'
+import {Ionicons} from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useRootNavigationState } from "expo-router";
+
 
 export default function Tablayout() {
   const insets = useSafeAreaInsets();
+
+
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.primary,
+        tabBarActiveTintColor: COLORS.primary,
         headerTitleStyle: {
           color: COLORS.textPrimary,
           fontWeight: '600',
@@ -31,7 +35,7 @@ export default function Tablayout() {
       <Tabs.Screen name="index" 
       options={{
         title: 'Home',
-        tabBarIcon: ({color,size}) => (<IonIcons 
+        tabBarIcon: ({color,size}) => (<Ionicons 
         name="home-outline" 
         size={size} 
         color={color} />),  
@@ -41,7 +45,7 @@ export default function Tablayout() {
       <Tabs.Screen name="create"
       options={{
         title: 'Create',
-        tabBarIcon: ({color,size}) => (<IonIcons 
+        tabBarIcon: ({color,size}) => (<Ionicons 
           name="add-circle-outline" 
           size={size} 
           color={color} />), 
@@ -51,7 +55,7 @@ export default function Tablayout() {
       <Tabs.Screen name="profile"
       options={{
         title: 'Profile',
-        tabBarIcon: ({color,size}) => (<IonIcons 
+        tabBarIcon: ({color,size}) => (<Ionicons 
           name="person-outline" 
           size={size} 
           color={color} />), 
